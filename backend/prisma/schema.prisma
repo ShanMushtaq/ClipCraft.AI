@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  tier      String   @default("FREE") // FREE, PRO, STUDIO
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  videos    Video[]
+}
+
+model Video {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  url       String
+  status    String   @default("PROCESSING") // UPLOADED, PROCESSING, COMPLETED, ERROR
+  duration  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  clips     Clip[]
+}
+
+model Clip {
+  id         String   @id @default(uuid())
+  videoId    String
+  video      Video    @relation(fields: [videoId], references: [id])
+  title      String
+  url        String?
+  timecode   String   // e.g., "0:32-1:15"
+  score      Int      @default(0) // 0-100
+  status     String   @default("GENERATING") // GENERATING, READY, FAILED
+  platforms  String[] // ["tiktok", "youtube"]
+  aspectRatio String   @default("9:16")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  userId    String
+  amount    Float
+  status    String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  createdAt DateTime @default(now())
+}
